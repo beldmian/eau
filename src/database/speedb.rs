@@ -29,7 +29,6 @@ impl database::Database for SpeeDbDatabase {
         }
         Box::pin(run(self, note))
     }
-
     fn get_user_notes<'a,'async_trait>(
         &'a self,
         owner_telegram_id: i64,
@@ -45,7 +44,6 @@ impl database::Database for SpeeDbDatabase {
         }
         Box::pin(run(self, owner_telegram_id))
     }
-
 }
 
 impl SpeeDbDatabase {
