@@ -1,5 +1,4 @@
 use crate::entities;
-use crate::ai::get_embedding_retrying;
 use crate::bot;
 use telegram_bot::*;
 
@@ -16,7 +15,7 @@ impl bot::BotServer {
     }
     pub async fn add_note_handler(&self, msg: Message, text: String) -> Result<(), Box<dyn std::error::Error>> {
         self.bot.send(msg.text_reply("New note added")).await?;
-        let embedding = get_embedding_retrying(&text).await?;
+        let embedding = self.hf_api.get_embedding_retrying(&text).await?;
         self.db.insert_note(entities::Note{
             text,
             owner_telegram_id: msg.chat.id().into(),
@@ -27,8 +26,8 @@ impl bot::BotServer {
     }
     pub async fn search_notes_query(&self, msg: Message, query: String) -> Result<(), Box<dyn std::error::Error>> {
         self.bot.send(msg.text_reply("Searching...")).await?;
-        let query_embedding = get_embedding_retrying(&query).await?;
-        let search_result = self.db.search_notes(msg.chat.id().into(), query_embedding).await?;
+        let query_embedding = self.hf_api.get_embedding_retrying(&query).await?;
+        let search_result = self.db.search_notes(msg.chat.id().into(), query, query_embedding).await?;
         self.bot.send(msg.text_reply(format!("Notes: \n{}", self.format_notes_list(search_result)))).await?;
         Ok(())
     }
@@ -36,7 +35,7 @@ impl bot::BotServer {
         if let MessageKind::Text { ref data, .. } = msg.kind {
             if data.starts_with("/list") {
                 self.list_notes_handler(msg.clone()).await?
-            } else if let Some(query) = data.strip_prefix("/search") {
+            } else if let Some(query) = data.strip_prefix("/search ") {
                 self.search_notes_query(msg.clone(), String::from(query)).await?
             } else {
                 self.add_note_handler(msg.clone(), data.clone()).await?
