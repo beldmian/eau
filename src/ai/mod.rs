@@ -1,4 +1,5 @@
 use serde::{Serialize, Deserialize};
+use crate::utils::E;
 
 #[derive(Serialize)]
 struct HFRequest {
@@ -40,7 +41,7 @@ impl HFApi {
             models_pipeline: models_pipeline.to_owned(),
         }
     }
-    pub async fn get_embedding(&self, text: &String, model: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+    pub async fn get_embedding(&self, text: &String, model: &str) -> Result<Vec<f64>, E> {
         let client = reqwest::Client::new();
         let resp: HFEmbeddingResponse = client.post(format!("https://api-inference.huggingface.co/models/{}", model))
             .header("Authorization", format!("Bearer {}", self.authorization_token))
@@ -54,7 +55,7 @@ impl HFApi {
         }
     }
 
-    pub async fn get_embedding_retrying(&self, text: &String, model: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+    pub async fn get_embedding_retrying(&self, text: &String, model: &str) -> Result<Vec<f64>, E> {
         let mut res = self.get_embedding(text, model).await;
         while let Err(_) = res {
             tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
@@ -63,7 +64,7 @@ impl HFApi {
         res
     }
 
-    pub async fn get_full_embedding(&self, text: &String) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+    pub async fn get_full_embedding(&self, text: &String) -> Result<Vec<f64>, E> {
         let mut result: Vec<f64> = Vec::new();
         for model in &self.models_pipeline {
             result.append(&mut self.get_embedding_retrying(text, model.as_str()).await?);
