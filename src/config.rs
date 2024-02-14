@@ -5,7 +5,14 @@ use std::fs;
 pub struct Config {
     pub telegram_token: String,
     pub database_path: String,
-    pub hf_token: String,
+    #[serde(alias="ai")]
+    pub ai_config: HFConfig,
+}
+
+#[derive(Deserialize)]
+pub struct HFConfig {
+    pub token: String,
+    pub models_pipeline: Vec<String>,
 }
 
 pub fn get_config(path: &str) -> Result<Config, Box<dyn std::error::Error>> {

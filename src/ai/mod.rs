@@ -1,12 +1,21 @@
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 #[derive(Serialize)]
 struct HFRequest {
     inputs: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum HFEmbeddingResponse {
+    ListThree(Vec<Vec<Vec<f64>>>),
+    ListTwo(Vec<Vec<f64>>),
+    ListOne(Vec<f64>),
+}
+
 pub struct HFApi {
     authorization_token: String,
+    models_pipeline: Vec<String>,
 }
 
 fn mean_pooling(matrix: &Vec<Vec<f64>>) -> Vec<f64> {
@@ -25,27 +34,40 @@ fn mean_pooling(matrix: &Vec<Vec<f64>>) -> Vec<f64> {
 }
 
 impl HFApi {
-    pub fn new(authorization_token: &String) -> HFApi {
+    pub fn new(authorization_token: &String, models_pipeline: &Vec<String>) -> HFApi {
         Self {
             authorization_token: authorization_token.to_string(),
+            models_pipeline: models_pipeline.to_owned(),
         }
     }
-    pub async fn get_embedding(&self, text: &String) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+    pub async fn get_embedding(&self, text: &String, model: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
         let client = reqwest::Client::new();
-        let resp: Vec<Vec<Vec<f64>>> = client.post("https://api-inference.huggingface.co/models/ai-forever/sbert_large_nlu_ru")
+        let resp: HFEmbeddingResponse = client.post(format!("https://api-inference.huggingface.co/models/{}", model))
             .header("Authorization", format!("Bearer {}", self.authorization_token))
             .json(&HFRequest{
                 inputs: text.to_string()
             }).send().await?.json().await?;
-        Ok(mean_pooling(&resp[0]))
+        match resp {
+            HFEmbeddingResponse::ListThree(vec_resp) => Ok(mean_pooling(&vec_resp[0])),
+            HFEmbeddingResponse::ListTwo(vec_resp) => Ok(mean_pooling(&vec_resp)),
+            HFEmbeddingResponse::ListOne(vec_resp) => Ok(vec_resp)
+        }
     }
 
-    pub async fn get_embedding_retrying(&self, text: &String) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
-        let mut res = self.get_embedding(text).await;
+    pub async fn get_embedding_retrying(&self, text: &String, model: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+        let mut res = self.get_embedding(text, model).await;
         while let Err(_) = res {
             tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
-            res = self.get_embedding(text).await;
+            res = self.get_embedding(text, model).await;
         }
         res
+    }
+
+    pub async fn get_full_embedding(&self, text: &String) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+        let mut result: Vec<f64> = Vec::new();
+        for model in &self.models_pipeline {
+            result.append(&mut self.get_embedding_retrying(text, model.as_str()).await?);
+        }
+        Ok(result)
     }
 }
