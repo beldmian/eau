@@ -1,7 +1,7 @@
-use async_trait::async_trait;
-use serde::{Serialize, Deserialize};
-use crate::utils::E;
 use crate::ai;
+use crate::utils::E;
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
 struct HFRequest {
@@ -43,21 +43,30 @@ impl HFApi {
             models_pipeline: models_pipeline.to_owned(),
         }
     }
-
     async fn get_embedding(&self, text: &String, model: &str) -> Result<Vec<f64>, E> {
         let client = reqwest::Client::new();
-        let resp: HFEmbeddingResponse = client.post(format!("https://api-inference.huggingface.co/models/{}", model))
-            .header("Authorization", format!("Bearer {}", self.authorization_token))
-            .json(&HFRequest{
-                inputs: text.to_string()
-            }).send().await?.json().await?;
+        let resp: HFEmbeddingResponse = client
+            .post(format!(
+                "https://api-inference.huggingface.co/models/{}",
+                model
+            ))
+            .header(
+                "Authorization",
+                format!("Bearer {}", self.authorization_token),
+            )
+            .json(&HFRequest {
+                inputs: text.to_string(),
+            })
+            .send()
+            .await?
+            .json()
+            .await?;
         match resp {
             HFEmbeddingResponse::Three(vec_resp) => Ok(mean_pooling(&vec_resp[0])),
             HFEmbeddingResponse::Two(vec_resp) => Ok(mean_pooling(&vec_resp)),
-            HFEmbeddingResponse::One(vec_resp) => Ok(vec_resp)
+            HFEmbeddingResponse::One(vec_resp) => Ok(vec_resp),
         }
     }
-
     async fn get_embedding_retrying(&self, text: &String, model: &str) -> Result<Vec<f64>, E> {
         let mut res = self.get_embedding(text, model).await;
         while res.is_err() {
@@ -66,7 +75,6 @@ impl HFApi {
         }
         res
     }
-
     async fn get_full_embedding(&self, text: &String) -> Result<Vec<f64>, E> {
         let mut result: Vec<f64> = Vec::new();
         for model in &self.models_pipeline {
@@ -78,10 +86,7 @@ impl HFApi {
 
 #[async_trait]
 impl ai::AIApi for HFApi {
-    async fn get_embedding(
-        &self,
-        text: &String,
-    ) -> Result<Vec<f64>, E> {
+    async fn get_embedding(&self, text: &String) -> Result<Vec<f64>, E> {
         self.get_full_embedding(text).await
     }
 }

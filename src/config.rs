@@ -1,18 +1,18 @@
+use crate::utils::E;
 use serde::Deserialize;
 use std::fs;
-use crate::utils::E;
 
 #[derive(Deserialize)]
 pub struct Config {
     pub telegram_token: String,
     pub database_path: String,
-    #[serde(alias="ai")]
+    #[serde(alias = "ai")]
     pub ai_config: AIConfig,
 }
 
 #[derive(Deserialize)]
-#[serde(untagged)]
 pub enum AIConfig {
+    #[serde(alias = "huggingface")]
     HF(HFConfig),
 }
 

@@ -6,4 +6,3 @@ pub struct Note {
     pub embedding: Vec<f64>,
     pub owner_telegram_id: i64,
 }
-

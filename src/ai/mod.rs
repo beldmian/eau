@@ -1,5 +1,5 @@
-use async_trait::async_trait;
 use crate::utils::E;
+use async_trait::async_trait;
 
 pub mod huggingface;
 
