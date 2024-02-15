@@ -2,7 +2,7 @@ use std::sync::Arc;
 use futures::StreamExt;
 use telegram_bot::{Api, UpdateKind};
 use crate::database::{self, Database};
-use crate::ai::HFApi;
+use crate::ai::AIApi;
 use crate::utils::E;
 
 mod handlers;
@@ -11,11 +11,11 @@ mod handlers;
 pub struct BotServer {
     bot: Api, 
     db: Arc<Box<dyn Database>>,
-    hf_api: Arc<HFApi>,
+    hf_api: Arc<Box<dyn AIApi>>,
 }
 
 impl<'a> BotServer {
-    pub async fn new(db: Box<dyn database::Database>, hf_api: HFApi, token: &str) -> BotServer {
+    pub async fn new(db: Box<dyn database::Database>, hf_api: Box<dyn AIApi>, token: &str) -> BotServer {
         let bot = Api::new(token);
         Self {
             bot,

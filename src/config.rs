@@ -7,7 +7,13 @@ pub struct Config {
     pub telegram_token: String,
     pub database_path: String,
     #[serde(alias="ai")]
-    pub ai_config: HFConfig,
+    pub ai_config: AIConfig,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+pub enum AIConfig {
+    HF(HFConfig),
 }
 
 #[derive(Deserialize)]
