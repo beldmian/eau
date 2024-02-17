@@ -1,4 +1,5 @@
 mod ai;
+mod auth;
 mod bot;
 mod config;
 mod database;
@@ -13,7 +14,20 @@ async fn main() -> Result<(), utils::E> {
             ai::huggingface::HFApi::new(&hf_config.token, &hf_config.models_pipeline)
         }
     };
-    let db = database::speedb::SpeeDbDatabase::new(&config.database_path).await?;
-    let bot = bot::BotServer::new(Box::new(db), Box::new(ai_api), &config.telegram_token).await;
+    let db = match config.database_config {
+        config::DatabaseConfig::Local(local_config) => {
+            database::speedb::SpeeDbDatabase::new(&local_config.path).await?
+        }
+    };
+    let auth_provider = match config.auth_config {
+        config::AuthConfig::JWT(jwt_config) => auth::jwt::JWTAuthProvider::new(jwt_config.secret)?,
+    };
+    let bot = bot::BotServer::new(
+        Box::new(db),
+        Box::new(ai_api),
+        Box::new(auth_provider),
+        &config.bot_config.token,
+    )
+    .await;
     bot.start().await
 }

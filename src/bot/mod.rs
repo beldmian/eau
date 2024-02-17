@@ -1,4 +1,5 @@
 use crate::ai::AIApi;
+use crate::auth::AuthProvider;
 use crate::database::{self, Database};
 use crate::utils::E;
 use futures::StreamExt;
@@ -11,13 +12,15 @@ mod handlers;
 pub struct BotServer {
     bot: Api,
     db: Arc<Box<dyn Database>>,
+    auth_provider: Arc<Box<dyn AuthProvider>>,
     hf_api: Arc<Box<dyn AIApi>>,
 }
 
-impl<'a> BotServer {
+impl BotServer {
     pub async fn new(
         db: Box<dyn database::Database>,
         hf_api: Box<dyn AIApi>,
+        auth_provider: Box<dyn AuthProvider>,
         token: &str,
     ) -> BotServer {
         let bot = Api::new(token);
@@ -25,9 +28,10 @@ impl<'a> BotServer {
             bot,
             db: Arc::new(db),
             hf_api: Arc::new(hf_api),
+            auth_provider: Arc::new(auth_provider),
         }
     }
-    pub async fn start(&'a self) -> Result<(), E> {
+    pub async fn start(&self) -> Result<(), E> {
         let mut stream = self.bot.stream();
         while let Some(update) = stream.next().await {
             let update = update?;

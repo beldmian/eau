@@ -22,7 +22,7 @@ pub struct SpeeDbDatabase {
 }
 
 #[async_trait]
-impl database::Database for SpeeDbDatabase {
+impl database::NoteRepository for SpeeDbDatabase {
     async fn insert_note(&self, note: entities::Note) -> Result<(), E> {
         self.db.use_ns("eau").use_db("note").await?;
         self.db.create::<Vec<Record>>("notes").content(note).await?;

@@ -4,10 +4,41 @@ use std::fs;
 
 #[derive(Deserialize)]
 pub struct Config {
-    pub telegram_token: String,
-    pub database_path: String,
+    #[serde(alias = "bot")]
+    pub bot_config: BotConfig,
+    #[serde(alias = "auth")]
+    pub auth_config: AuthConfig,
+    #[serde(alias = "database")]
+    pub database_config: DatabaseConfig,
     #[serde(alias = "ai")]
     pub ai_config: AIConfig,
+}
+
+#[derive(Deserialize)]
+pub struct BotConfig {
+    pub token: String,
+}
+
+#[derive(Deserialize)]
+pub enum DatabaseConfig {
+    #[serde(alias = "local")]
+    Local(DatabaseLocalConfig),
+}
+
+#[derive(Deserialize)]
+pub struct DatabaseLocalConfig {
+    pub path: String,
+}
+
+#[derive(Deserialize)]
+pub enum AuthConfig {
+    #[serde(alias = "jwt")]
+    JWT(JWTAuthConfig),
+}
+
+#[derive(Deserialize)]
+pub struct JWTAuthConfig {
+    pub secret: String,
 }
 
 #[derive(Deserialize)]

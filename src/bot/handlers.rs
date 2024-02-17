@@ -46,10 +46,27 @@ impl<'a> bot::BotServer {
             .await?;
         Ok(())
     }
+    pub async fn generate_token(&'a self, msg: Message) -> Result<(), E> {
+        self.bot
+            .send(
+                msg.text_reply(format!(
+                    "Your token:\n\n`{}`",
+                    self.auth_provider
+                        .create_secret(crate::auth::IdentificationPayload {
+                            id: msg.chat.id().into()
+                        })?
+                ))
+                .parse_mode(ParseMode::Markdown),
+            )
+            .await?;
+        Ok(())
+    }
     pub async fn message_handler(&'a self, msg: Message) -> Result<(), E> {
         if let MessageKind::Text { ref data, .. } = msg.kind {
             if data.starts_with("/list") {
                 self.list_notes_handler(msg.clone()).await?
+            } else if data.starts_with("/token") {
+                self.generate_token(msg.clone()).await?
             } else if let Some(query) = data.strip_prefix("/search ") {
                 self.search_notes_query(msg.clone(), String::from(query))
                     .await?
