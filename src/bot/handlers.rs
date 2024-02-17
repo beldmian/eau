@@ -20,7 +20,7 @@ impl<'a> bot::BotServer {
     }
     pub async fn add_note_handler(&'a self, msg: Message, text: String) -> Result<(), E> {
         self.bot.send(msg.text_reply("New note added")).await?;
-        let embedding = self.hf_api.get_embedding(&text).await?;
+        let embedding = self.ai_api.get_embedding(&text).await?;
         self.db
             .insert_note(entities::Note {
                 text,
@@ -33,7 +33,7 @@ impl<'a> bot::BotServer {
     }
     pub async fn search_notes_query(&'a self, msg: Message, query: String) -> Result<(), E> {
         self.bot.send(msg.text_reply("Searching...")).await?;
-        let query_embedding = self.hf_api.get_embedding(&query).await?;
+        let query_embedding = self.ai_api.get_embedding(&query).await?;
         let search_result = self
             .db
             .search_notes(msg.chat.id().into(), query, query_embedding)

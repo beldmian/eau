@@ -1,7 +1,7 @@
 use crate::ai::AIApi;
 use crate::auth::AuthProvider;
 use crate::config::BotConfig;
-use crate::database::{self, Database};
+use crate::database::Database;
 use crate::utils::E;
 use futures::StreamExt;
 use std::sync::Arc;
@@ -12,24 +12,24 @@ mod handlers;
 #[derive(Clone)]
 pub struct BotServer {
     bot: Api,
-    db: Arc<Box<dyn Database>>,
-    auth_provider: Arc<Box<dyn AuthProvider>>,
-    hf_api: Arc<Box<dyn AIApi>>,
+    db: Arc<dyn Database>,
+    auth_provider: Arc<dyn AuthProvider>,
+    ai_api: Arc<dyn AIApi>,
 }
 
 impl BotServer {
     pub async fn new(
-        db: Box<dyn database::Database>,
-        hf_api: Box<dyn AIApi>,
-        auth_provider: Box<dyn AuthProvider>,
+        db: Arc<dyn Database>,
+        ai_api: Arc<dyn AIApi>,
+        auth_provider: Arc<dyn AuthProvider>,
         config: &BotConfig,
     ) -> BotServer {
         let bot = Api::new(config.token.clone());
         Self {
             bot,
-            db: Arc::new(db),
-            hf_api: Arc::new(hf_api),
-            auth_provider: Arc::new(auth_provider),
+            db,
+            ai_api,
+            auth_provider,
         }
     }
     pub async fn start(&self) -> Result<(), E> {

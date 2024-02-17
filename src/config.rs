@@ -4,6 +4,8 @@ use std::fs;
 
 #[derive(Deserialize)]
 pub struct Config {
+    #[serde(alias = "http_server")]
+    pub http_server_config: HttpServerConfig,
     #[serde(alias = "bot")]
     pub bot_config: BotConfig,
     #[serde(alias = "auth")]
@@ -12,6 +14,11 @@ pub struct Config {
     pub database_config: DatabaseConfig,
     #[serde(alias = "ai")]
     pub ai_config: AIConfig,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct HttpServerConfig {
+    pub port: u16,
 }
 
 #[derive(Deserialize)]
