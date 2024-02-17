@@ -1,5 +1,6 @@
 use crate::ai::AIApi;
 use crate::auth::AuthProvider;
+use crate::config::BotConfig;
 use crate::database::{self, Database};
 use crate::utils::E;
 use futures::StreamExt;
@@ -21,9 +22,9 @@ impl BotServer {
         db: Box<dyn database::Database>,
         hf_api: Box<dyn AIApi>,
         auth_provider: Box<dyn AuthProvider>,
-        token: &str,
+        config: &BotConfig,
     ) -> BotServer {
-        let bot = Api::new(token);
+        let bot = Api::new(config.token.clone());
         Self {
             bot,
             db: Arc::new(db),

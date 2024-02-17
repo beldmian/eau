@@ -1,5 +1,5 @@
-use crate::ai;
 use crate::utils::E;
+use crate::{ai, config::HFConfig};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
@@ -37,10 +37,10 @@ fn mean_pooling(matrix: &[Vec<f64>]) -> Vec<f64> {
 }
 
 impl HFApi {
-    pub fn new(authorization_token: &String, models_pipeline: &Vec<String>) -> HFApi {
+    pub fn new(config: &HFConfig) -> HFApi {
         Self {
-            authorization_token: authorization_token.to_string(),
-            models_pipeline: models_pipeline.to_owned(),
+            authorization_token: config.token.clone(),
+            models_pipeline: config.models_pipeline.clone(),
         }
     }
     async fn get_embedding(&self, text: &String, model: &str) -> Result<Vec<f64>, E> {

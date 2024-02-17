@@ -21,12 +21,12 @@ pub struct BotConfig {
 
 #[derive(Deserialize)]
 pub enum DatabaseConfig {
-    #[serde(alias = "local")]
-    Local(DatabaseLocalConfig),
+    #[serde(alias = "speedb")]
+    SpeeDB(SpeeDBConfig),
 }
 
 #[derive(Deserialize)]
-pub struct DatabaseLocalConfig {
+pub struct SpeeDBConfig {
     pub path: String,
 }
 

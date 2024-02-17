@@ -7,9 +7,9 @@ use surrealdb::{
     Surreal,
 };
 
-use crate::database;
 use crate::entities;
 use crate::utils::E;
+use crate::{config, database};
 
 #[derive(Debug, Deserialize)]
 struct Record {
@@ -56,8 +56,8 @@ impl database::NoteRepository for SpeeDbDatabase {
 }
 
 impl SpeeDbDatabase {
-    pub async fn new(path: &str) -> Result<impl database::Database, E> {
-        let db = Surreal::new::<SpeeDb>(path).await?;
+    pub async fn new(config: &config::SpeeDBConfig) -> Result<impl database::Database, E> {
+        let db = Surreal::new::<SpeeDb>(config.path.clone()).await?;
         db.use_ns("eau").use_db("note").await?;
         db.query(String::from_utf8_lossy(include_bytes!("queries/up.sql")).as_ref())
             .await?;

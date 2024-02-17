@@ -3,6 +3,7 @@ use jwt::{SignWithKey, VerifyWithKey};
 use sha2::Sha256;
 
 use crate::auth::{AuthProvider, IdentificationPayload};
+use crate::config::JWTAuthConfig;
 use crate::utils::E;
 
 #[derive(Clone)]
@@ -20,9 +21,9 @@ impl AuthProvider for JWTAuthProvider {
 }
 
 impl JWTAuthProvider {
-    pub fn new(secret: String) -> Result<impl AuthProvider, E> {
+    pub fn new(config: &JWTAuthConfig) -> Result<impl AuthProvider, E> {
         Ok(Self {
-            key: Hmac::new_from_slice(secret.as_bytes())?,
+            key: Hmac::new_from_slice(config.secret.as_bytes())?,
         })
     }
 }
