@@ -18,13 +18,13 @@ pub struct HttpServer {
 pub struct HandlerState {
     db: Arc<dyn Database>,
     auth_provider: Arc<dyn AuthProvider>,
-    _ai_api: Arc<dyn AIApi>,
+    ai_api: Arc<dyn AIApi>,
 }
 
 impl HttpServer {
     pub async fn new(
         db: Arc<dyn Database>,
-        _ai_api: Arc<dyn AIApi>,
+        ai_api: Arc<dyn AIApi>,
         auth_provider: Arc<dyn AuthProvider>,
         config: &HttpServerConfig,
     ) -> HttpServer {
@@ -32,7 +32,7 @@ impl HttpServer {
             config: config.clone(),
             handler_state: HandlerState {
                 db,
-                _ai_api,
+                ai_api,
                 auth_provider,
             },
         }
@@ -45,6 +45,7 @@ impl HttpServer {
             web::App::new()
                 .state(state.clone())
                 .route("/notes", web::get().to(handlers::list_notes))
+                .route("/note", web::post().to(handlers::add_note))
         })
         .backlog(1024)
         .bind(("127.0.0.1", self.config.port))
