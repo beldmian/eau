@@ -12,7 +12,8 @@ mod utils;
 async fn main() -> Result<(), utils::E> {
     let config = config::get_config("config.toml")?;
     let ai_api = Arc::new(match config.ai_config {
-        config::AIConfig::HF(hf_config) => ai::huggingface::HFApi::new(&hf_config),
+        config::AIConfig::HF(hf_config) => ai::huggingface::HFApi::new(&hf_config)?,
+        config::AIConfig::Local(local_config) => ai::local_hf::LocalHF::new(&local_config)?,
     });
     let db = Arc::new(match config.database_config {
         config::DatabaseConfig::SpeeDB(speedb_config) => {

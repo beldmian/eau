@@ -18,13 +18,13 @@ pub struct HttpServer {
 pub struct HandlerState {
     db: Arc<dyn Database>,
     auth_provider: Arc<dyn AuthProvider>,
-    ai_api: Arc<dyn AIApi>,
+    ai_api: Arc<Box<dyn AIApi>>,
 }
 
 impl HttpServer {
     pub async fn new(
         db: Arc<dyn Database>,
-        ai_api: Arc<dyn AIApi>,
+        ai_api: Arc<Box<dyn AIApi>>,
         auth_provider: Arc<dyn AuthProvider>,
         config: &HttpServerConfig,
     ) -> HttpServer {

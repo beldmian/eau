@@ -52,12 +52,19 @@ pub struct JWTAuthConfig {
 pub enum AIConfig {
     #[serde(alias = "huggingface")]
     HF(HFConfig),
+    #[serde(alias = "local_huggingface")]
+    Local(LocalHFConfig),
 }
 
 #[derive(Deserialize)]
 pub struct HFConfig {
     pub token: String,
     pub models_pipeline: Vec<String>,
+}
+
+#[derive(Deserialize)]
+pub struct LocalHFConfig {
+    pub model_name: String,
 }
 
 pub fn get_config(path: &str) -> Result<Config, E> {

@@ -3,6 +3,8 @@ use crate::{ai, config::HFConfig};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
+use super::AIApi;
+
 #[derive(Serialize)]
 struct HFRequest {
     inputs: String,
@@ -37,11 +39,11 @@ fn mean_pooling(matrix: &[Vec<f64>]) -> Vec<f64> {
 }
 
 impl HFApi {
-    pub fn new(config: &HFConfig) -> HFApi {
-        Self {
+    pub fn new(config: &HFConfig) -> Result<Box<dyn AIApi>, E> {
+        Ok(Box::new(Self {
             authorization_token: config.token.clone(),
             models_pipeline: config.models_pipeline.clone(),
-        }
+        }))
     }
     async fn get_embedding(&self, text: &String, model: &str) -> Result<Vec<f64>, E> {
         let client = reqwest::Client::new();
